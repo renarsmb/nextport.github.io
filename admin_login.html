@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextPort Vadības Panelis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .admin-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .nextport-logo {
+            color: #e73c7e;
+            font-weight: bold;
+        }
+
+        .login-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .login-input:focus {
+            border-color: #6a11cb;
+        }
+
+        .login-btn {
+            position: absolute;
+            right: 5px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #23a6d5;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #1e8eb6;
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-login-card">
+        <div class="admin-title">
+            <span class="nextport-logo">NextPort</span> vadības panelis
+        </div>
+
+        <div class="login-input-wrapper">
+            <input type="password" id="password" class="login-input" placeholder="Parole">
+            <button class="login-btn" onclick="login()">→</button>
+        </div>
+        <div id="error-msg" class="error-msg">Nepareiza parole</div>
+    </div>
+
+    <script>
+        async function login() {
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    </script>
+</body>
+
+</html>

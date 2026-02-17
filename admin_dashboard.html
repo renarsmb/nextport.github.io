@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextPort Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #d6336c;
+            /* Pinkish red */
+        }
+
+        .logo span {
+            color: #333;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            padding: 40px;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .divider {
+            width: 2px;
+            background: #eee;
+        }
+
+        h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Cards & Inputs */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            /* Some elements flush */
+            border: 2px solid #eee;
+            overflow: hidden;
+        }
+
+        .question-box {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .question-box.active {
+            border-color: #333;
+        }
+
+        .question-box input {
+            border: none;
+            width: 100%;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+        }
+
+        .action-btn-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #01560b;
+            color: white;
+            border: none;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+        }
+
+        .action-btn-circle.green {
+            background: #27ae60;
+        }
+
+        .action-btn-circle.red {
+            background: #e74c3c;
+        }
+
+        /* Settings Rows */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 50px;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+        }
+
+        .setting-label {
+            font-weight: 600;
+        }
+
+        .toggle-group {
+            display: flex;
+            background: #eef2f5;
+            border-radius: 50px;
+            padding: 4px;
+        }
+
+        .toggle-btn {
+            padding: 8px 15px;
+            border-radius: 50px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #5db1ff;
+            font-weight: 600;
+        }
+
+        /* Bottom Controls */
+        .bottom-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .pill-btn {
+            border: 2px solid #eee;
+            background: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .pill-btn:hover {
+            background: #f8f8f8;
+            border-color: #ddd;
+        }
+
+        .pill-btn.danger {
+            background: #ffebeb;
+            border-color: #ffcccc;
+            color: #c0392b;
+        }
+
+        .pill-btn.danger:hover {
+            background: #ffdada;
+        }
+
+        .new-question-container {
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            padding: 20px;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-bar">
+        <div class="logo">Next<span>Port</span></div>
+        <button class="logout-btn" onclick="logout()">Iziet</button>
+    </div>
+
+    <div class="main-container">
+
+        <!-- Left Column: Questions -->
+        <div class="column">
+            <div>
+                <h3>Pašreizējais jautājums</h3>
+                <div class="question-box active">
+                    <input type="text" id="current-question" value="Loading...">
+                    <button class="action-btn-circle green" onclick="saveCurrent()">✓</button>
+                </div>
+            </div>
+
+            <div>
+                <h3>Nākošie jautājumi</h3>
+                <div id="next-questions-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="new-question-container">
+                <input type="text" id="new-question-input" placeholder="Ierakstīt jaunu jautājumu..."
+                    style="width: 100%; border: none; font-size: 1rem; padding: 10px 0; outline: none; border-bottom: 2px solid #eee; margin-bottom: 10px;">
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="pill-btn danger" onclick="clearAnswers()">Notīrīt atbildes</button>
+                    <!-- <button class="pill-btn danger">Notīrīt jautājumus</button> -->
+                    <button class="pill-btn" style="border-color: #f39c12; color: #f39c12;" onclick="openQuickModal()">⚡
+                        Ātrais jaut.</button>
+                    <button class="action-btn-circle green" style="margin-left: auto;"
+                        onclick="addQuestion()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Right Column: Settings -->
+        <div class="column">
+            <h3>Iestatījumi</h3>
+
+            <div class="setting-row">
+                <span class="setting-label">Jautājumu maiņas intervāls</span>
+                <div class="toggle-group" id="interval-group">
+                    <button class="toggle-btn" onclick="setSetting('interval', '1d')">1d</button>
+                    <button class="toggle-btn" onclick="setSetting('interval', '2d')">2d</button>
+                    <button class="toggle-btn" onclick="setSetting('interval', '3d')">3d</button>
+                    <button class="toggle-btn" onclick="setSetting('interval', '1week')">1ned</button>
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <span class="setting-label">Atbildes auto notīrīšana</span>
+                <div class="toggle-group" id="max-answers-group">
+                    <button class="toggle-btn" onclick="setSetting('max_answers', 20)">20</button>
+                    <button class="toggle-btn" onclick="setSetting('max_answers', 40)">40</button>
+                    <button class="toggle-btn" onclick="setSetting('max_answers', 100)">100</button>
+                    <button class="toggle-btn" onclick="setSetting('max_answers', 0)">izsl.</button>
+                </div>
+            </div>
+
+
+
+            <button class="pill-btn danger"
+                style="width: fit-content; border: 2px solid #e74c3c; color: #e74c3c; background: white;">Mainīt
+                piekļuves paroli</button>
+        </div>
+
+    </div>
+
+    <!-- Quick Question Modal -->
+    <div id="quick-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 20px; width: 400px; text-align: center;">
+            <h3>Ātrais Jautājums ⚡</h3>
+            <input type="text" id="quick-q-input" placeholder="Jautājums..."
+                style="width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #eee; border-radius: 10px;">
+            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                <button class="toggle-btn" onclick="setQuickTime(30)">30s</button>
+                <button class="toggle-btn active" onclick="setQuickTime(60)">60s</button>
+                <button class="toggle-btn" onclick="setQuickTime(120)">2m</button>
+                <button class="toggle-btn" onclick="setQuickTime(300)">5m</button>
+            </div>
+            <input type="hidden" id="quick-time" value="60">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="pill-btn" onclick="closeQuickModal()">Atcelt</button>
+                <button class="pill-btn" style="background: #f39c12; color: white; border: none;"
+                    onclick="submitQuickQuestion()">Sākt!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let appData = {};
+
+        async function loadData() {
+            const res = await fetch('/api/admin/data');
+            if (res.status === 401) window.location.href = '/admin';
+            appData = await res.json();
+            render();
+        }
+
+        function render() {
+            // Current Question
+            document.getElementById('current-question').value = appData.current_question;
+
+            // Next Questions
+            const list = document.getElementById('next-questions-list');
+            list.innerHTML = '';
+            appData.next_questions.forEach((q, idx) => {
+                const div = document.createElement('div');
+                div.className = 'question-box';
+                div.innerHTML = `
+                    <span>${q}</span>
+                    <button class="action-btn-circle" onclick="promoteQuestion(${idx})">↑</button>
+                `;
+                list.appendChild(div);
+            });
+
+            // Settings
+            updateToggleGroup('interval-group', appData.settings.interval);
+            updateToggleGroup('max-answers-group', appData.settings.max_answers);
+
+        }
+
+        function updateToggleGroup(id, value) {
+            const group = document.getElementById(id);
+            Array.from(group.children).forEach(btn => {
+                // simple check for value match
+                if (btn.innerText === String(value) ||
+                    (String(value) === '1week' && btn.innerText === '1ned') ||
+                    (value === 0 && btn.innerText === 'izsl.')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        async function updateServer(payload) {
+            await fetch('/api/admin/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            loadData(); // reload to confirm
+        }
+
+        async function saveCurrent() {
+            const val = document.getElementById('current-question').value;
+            await updateServer({ current_question: val });
+        }
+
+        async function addQuestion() {
+            const input = document.getElementById('new-question-input');
+            if (!input.value.trim()) return;
+            const newQ = input.value.trim();
+            const nextQ = [...appData.next_questions, newQ];
+            await updateServer({ next_questions: nextQ });
+            input.value = '';
+        }
+
+        async function promoteQuestion(idx) {
+            const questionToPromote = appData.next_questions[idx];
+            // Remove from list
+            const newNextQ = appData.next_questions.filter((_, i) => i !== idx);
+            // Optional: Do we move old current question to end of list? Or just overwrite?
+            // Let's just overwrite for now as per design "push up".
+
+            await updateServer({
+                current_question: questionToPromote,
+                next_questions: newNextQ
+            });
+        }
+
+        async function clearAnswers() {
+            if (confirm("Tiešām dzēst visas atbildes?")) {
+                await updateServer({ clear_answers: true });
+            }
+        }
+
+        async function setSetting(key, val) {
+            const settings = { ...appData.settings, [key]: val };
+            await updateServer({ settings });
+        }
+
+        async function logout() {
+            await fetch('/api/admin/logout', { method: 'POST' });
+            window.location.href = '/admin';
+        }
+
+        // --- Quick Modal Logic ---
+        function openQuickModal() {
+            document.getElementById('quick-modal').style.display = 'flex';
+        }
+        function closeQuickModal() {
+            document.getElementById('quick-modal').style.display = 'none';
+        }
+        function setQuickTime(sec) {
+            document.getElementById('quick-time').value = sec;
+            // visual update
+            const btns = document.querySelectorAll('#quick-modal .toggle-btn');
+            btns.forEach(btn => {
+                // This logic assumes button text is like "30s", "60s", "2m", "5m"
+                // and matches the numeric part or the full string.
+                // For "2m" (120s), it checks if "2m" includes "2" (120/60).
+                // For "5m" (300s), it checks if "5m" includes "5" (300/60).
+                const btnText = btn.innerText;
+                const valueToMatch = sec < 60 ? String(sec) : String(sec / 60);
+
+                if (btnText.includes(valueToMatch) && (btnText.endsWith('s') || btnText.endsWith('m'))) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        async function submitQuickQuestion() {
+            const q = document.getElementById('quick-q-input').value;
+            const t = document.getElementById('quick-time').value;
+            if (!q.trim()) return;
+
+            await updateServer({
+                current_question: q,
+                duration: t,
+                clear_answers: true // Start fresh
+            });
+            closeQuickModal();
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

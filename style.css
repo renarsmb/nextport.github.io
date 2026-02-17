@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;600&display=swap');
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --text-color: #2D2D2D;
+    --primary-color: #6a11cb;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Caveat', cursive;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: linear-gradient(-45deg, #9253ff, #e73c7e, #23a6d5, #bb0b0b);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Glassmorphism Container */
+.container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    padding: 2rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    text-align: center;
+    max-width: 90%;
+    width: fit-content;
+    transition: all 0.5s ease;
+}
+
+/* Board Specific */
+#board-view {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    color: #fff;
+    font-size: 5rem;
+    margin-bottom: 2rem;
+    line-height: 1.2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cloud-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.floating-word {
+    position: absolute;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+    transition: all 1s ease-out;
+    opacity: 0;
+    animation: floatIn 1s forwards, bob 3s infinite ease-in-out alternate;
+}
+
+@keyframes floatIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes bob {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-20px);
+    }
+}
+
+/* Student Input Specific */
+.input-card {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 300px;
+    font-family: 'Inter', sans-serif;
+}
+
+.input-card h2,
+.input-card button {
+    font-family: 'Inter', sans-serif;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 15px;
+    margin: 20px 0;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.2rem;
+    outline: none;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus {
+    border-color: var(--primary-color);
+}
+
+button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-family: 'Caveat', cursive;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.2s, background 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    background: #5a0eb0;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.success-message {
+    display: none;
+    margin-top: 20px;
+    font-size: 1.5rem;
+    color: #27ae60;
+}
+
+/* QR Code styling */
+.scan-me {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-top: 20px;
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+}

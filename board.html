@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextPort Jautājumi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load QRCode.js for generating QR codes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body>
+
+    <div id="board-view">
+        <h1 id="question-text">{{ question }}</h1>
+
+        <!-- Container for floating answers -->
+        <div id="cloud-container" class="cloud-container"></div>
+
+        <!-- Connection Info -->
+        <div id="qr-container" style="position: fixed; bottom: 20px; right: 20px; text-align: center;">
+            <div id="qrcode" style="background: white; padding: 10px; border-radius: 10px;"></div>
+            <div class="scan-me">Pievienoties!</div>
+        </div>
+
+        <!-- Timer -->
+        <div id="timer"
+            style="display: none; position: fixed; top: 20px; right: 20px; font-size: 3rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; backdrop-filter: blur(5px);">
+            00:00
+        </div>
+    </div>
+
+    <script>
+        const cloudContainer = document.getElementById('cloud-container');
+        const questionText = document.getElementById('question-text');
+        const qrContainer = document.getElementById('qr-container');
+        const timerEl = document.getElementById('timer');
+        const displayedAnswerIds = new Set();
+        const MAX_WORDS = 40;
+        const RESIZE_DEBOUNCE = 200;
+
+        // Generate QR Code pointing to the student page
+        const studentUrl = `http://${window.location.hostname}:5000/student`;
+        new QRCode(document.getElementById("qrcode"), {
+            text: studentUrl,
+            width: 100,
+            height: 100
+        });
+
+        // Helper to check if two rects intersect
+        function isOverlapping(rect1, rect2) {
+            return !(rect1.right < rect2.left ||
+                rect1.left > rect2.right ||
+                rect1.bottom < rect2.top ||
+                rect1.top > rect2.bottom);
+        }
+
+        // Get limits of a specific element + padding
+        function getElementLimits(el) {
+            const rect = el.getBoundingClientRect();
+            const padding = 20;
+            return {
+                top: rect.top - padding,
+                bottom: rect.bottom + padding,
+                left: rect.left - padding,
+                right: rect.right + padding
+            };
+        }
+
+        function getRandomSize() {
+            // Random size between 1.5rem and 4rem (slightly smaller to fit more)
+            return Math.random() * 2.5 + 1.5 + 'rem';
+        }
+
+        function getRandomRotation() {
+            return Math.random() * 40 - 20 + 'deg';
+        }
+
+        function findValidPosition(element) {
+            const maxAttempts = 50;
+            const containerWidth = window.innerWidth;
+            const containerHeight = window.innerHeight;
+
+            // Define all safe zones we must NOT overlap
+            const safeZones = [
+                getElementLimits(questionText),
+                getElementLimits(qrContainer)
+            ];
+
+            // Temporarily add to DOM to measure size, but hide it
+            element.style.visibility = 'hidden';
+            cloudContainer.appendChild(element);
+            const elWidth = element.offsetWidth;
+            const elHeight = element.offsetHeight;
+
+            for (let i = 0; i < maxAttempts; i++) {
+                // Random position within viewport
+                const x = Math.random() * (containerWidth - elWidth);
+                const y = Math.random() * (containerHeight - elHeight);
+
+                const proposedRect = {
+                    left: x,
+                    top: y,
+                    right: x + elWidth,
+                    bottom: y + elHeight
+                };
+
+                // Check 1: Does it overlap ANY Safe Zone?
+                let hitsSafeZone = false;
+                for (const zone of safeZones) {
+                    if (isOverlapping(proposedRect, zone)) {
+                        hitsSafeZone = true;
+                        break;
+                    }
+                }
+                if (hitsSafeZone) continue;
+
+                // Check 2: Does it overlap other words?
+                // We check against all current children of cloudContainer
+                let overlapFound = false;
+                const existingWords = cloudContainer.children;
+                // Since we appended 'element' already, ignore it (it's the last one)
+                for (let j = 0; j < existingWords.length - 1; j++) {
+                    const other = existingWords[j];
+                    const otherRect = other.getBoundingClientRect();
+
+                    // Expand otherRect slightly for visual breathing room
+                    const expandedOther = {
+                        left: otherRect.left - 10,
+                        right: otherRect.right + 10,
+                        top: otherRect.top - 10,
+                        bottom: otherRect.bottom + 10
+                    };
+
+                    if (isOverlapping(proposedRect, expandedOther)) {
+                        overlapFound = true;
+                        break;
+                    }
+                }
+
+                if (!overlapFound) {
+                    // Valid spot found!
+                    element.style.left = x + 'px';
+                    element.style.top = y + 'px';
+                    element.style.visibility = 'visible';
+                    return true;
+                }
+            }
+
+            // If we failed to find a spot, clean up
+            cloudContainer.removeChild(element);
+            return false;
+        }
+
+        function createFloatingWord(text, id) {
+            const span = document.createElement('span');
+            span.textContent = text;
+            span.className = 'floating-word';
+            span.style.fontSize = getRandomSize();
+            span.style.transform = `rotate(${getRandomRotation()})`;
+
+            // We set animations but need to be careful they don't move the element *too* much 
+            // from its safe spot. The 'bob' animation is subtle (-20px Y).
+            span.style.animationDelay = `0s, ${Math.random() * 2}s`;
+
+            // Attempt to place it
+            const placed = findValidPosition(span);
+
+            if (placed) {
+                displayedAnswerIds.add(id);
+                manageWordLimit();
+            }
+        }
+
+        function manageWordLimit() {
+            const words = Array.from(cloudContainer.children);
+            if (words.length > MAX_WORDS) {
+                // Remove the oldest (first child)
+                const toRemove = words[0];
+
+                // Animate out? For now just remove
+                cloudContainer.removeChild(toRemove);
+
+                // We'd ideally remove its ID from displayedAnswerIds too, 
+                // but since we never re-add old IDs, it's fine.
+            }
+        }
+
+        async function fetchAnswers() {
+            try {
+                const response = await fetch('/api/answers');
+                const data = await response.json();
+
+                // Update Question if changed
+                const qText = document.getElementById('question-text');
+                if (data.question && qText.textContent !== data.question) {
+                    qText.textContent = data.question;
+
+                    // If question changed unexpectedly (e.g. timeout), clear answers locally to sync?
+                    // Or rely on IDs.
+                }
+
+                // Update Timer
+                if (data.remaining_time !== null) {
+                    timerEl.style.display = 'block';
+                    const m = Math.floor(data.remaining_time / 60).toString().padStart(2, '0');
+                    const s = (data.remaining_time % 60).toString().padStart(2, '0');
+                    timerEl.textContent = `${m}:${s}`;
+                } else {
+                    timerEl.style.display = 'none';
+                }
+
+                // Update Theme (if we had CSS classes for it)
+                // For now just console log or implement simpler logic
+                // document.body.className = data.theme; 
+
+                const answers = data.answers || [];
+
+                // Sort by ID to ensure we process in order (though server array is already ordered)
+                answers.sort((a, b) => a.id - b.id);
+
+                // Detect if answers were cleared (server has fewer/different answers than we display)
+                if (answers.length === 0 && displayedAnswerIds.size > 0) {
+                    cloudContainer.innerHTML = '';
+                    displayedAnswerIds.clear();
+                }
+
+                answers.forEach(answer => {
+                    if (!displayedAnswerIds.has(answer.id)) {
+                        createFloatingWord(answer.text, answer.id);
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching answers:', error);
+            }
+        }
+
+        // Poll for new answers
+        setInterval(fetchAnswers, 1000); // 1s polling for smoother timer
+        fetchAnswers();
+    </script>
+</body>
+
+</html>

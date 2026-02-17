@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Answer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="input-card">
+        <h2>Tava Atbilde</h2>
+        <input type="text" id="answer-input" placeholder="Raksti šeit..." maxlength="30" autocomplete="off">
+        <button onclick="submitAnswer()">Sūtīt</button>
+        <div id="success-msg" class="success-message">Nosūtīts! ✨</div>
+    </div>
+
+    <script>
+        async function submitAnswer() {
+            const input = document.getElementById('answer-input');
+            const text = input.value.trim();
+            const btn = document.querySelector('button');
+            const successMsg = document.getElementById('success-msg');
+
+            if (!text) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Sūta...';
+
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ answer: text }),
+                });
+
+                if (response.ok) {
+                    input.value = '';
+                    successMsg.style.display = 'block';
+                    btn.textContent = 'Sūtīt';
+                    btn.disabled = false;
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert('Kļūda sūtot atbildi!');
+                    btn.disabled = false;
+                    btn.textContent = 'Sūtīt';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Tīkla kļūda!');
+                btn.disabled = false;
+                btn.textContent = 'Sūtīt';
+            }
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('answer-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "password": "admin",
+  "current_question": "Kur dzīvo cilvēki?",
+  "next_questions": [],
+  "answers": [
+    {
+      "text": "Ss",
+      "id": 1
+    }
+  ],
+  "settings": {
+    "interval": "1d",
+    "max_answers": 20,
+    "theme": "light"
+  },
+  "expires_at": null
+}
